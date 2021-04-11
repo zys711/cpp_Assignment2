@@ -1,3 +1,5 @@
+#ifndef nbsimParticle_h
+#define nbsimParticle_h
 #include <Eigen/Dense>
 
 
@@ -9,6 +11,9 @@ namespace nbsim{
     ~Particle();
     Eigen::Vector3d getPosition();
     Eigen::Vector3d getVelocity();
-    void integrateTimestep(Eigen::Vector3d acceleration, double timestep);
-    }
-};
+    void integrateTimestep(Eigen::Vector3d acceleration,double timestep);
+    private:
+    Eigen::Vector3d current_position, current_velocity;
+    };
+}
+#endif
