@@ -143,3 +143,16 @@ The benchmark timesteps are 1 hour, 1 day, 2 days, 3 days, and 5 days. Also the 
 | 0.001370(5 days) |    0.77      |         0.76          | 0.274966,   1.04348,  0.000113782 |          0.22547637957886751           |
 
 From the result we can see with the timestep decreases (for loop count increases), the benchmark time increases roughly linearly. Also, the sqaured error increases as timestep increases.
+
+OpenMP
+------
+
+| Timestep (year)  | CPU time(ms) |  Wall clock time(ms)  | New CPU time(ms) | New Wall clock time(ms) | 
+|------------------|--------------|-----------------------|------------------|-------------------------|
+|0.00001142(1 hour)|    87.07     |         87.07         |     2446.84      |          157.82         | 
+| 0.0000274(1 day) |    3.83      |         3.83          |      19.49       |          7.57           | 
+| 0.000548(2 days) |    1.94      |         1.94          |      16.56       |          4.48           |
+| 0.000822(3 days) |    1.29      |         1.29          |      14.35       |          3.52           |
+| 0.001370(5 days) |    0.77      |         0.76          |      13.19       |          2.89           |
+
+My CPU has 16 cores. The OMP_NUM_THREADS beyond 16 is not useful for speeding up. The results without parallelisation perform very well, so it makes the cost of parallelisation obvious. Even though we can still see the cost of parallelisation decreases as the time increases.
