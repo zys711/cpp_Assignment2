@@ -7,6 +7,7 @@
 #include <Eigen/Dense>
 #include <CLI/CLI.hpp>
 #include <chrono>
+#include <omp.h>
 
 int main(int argc, char** argv){
     CLI::App app{"solar system simulator"};
@@ -19,8 +20,12 @@ int main(int argc, char** argv){
     double mu,mu_total=0;
     std::shared_ptr<nbsim::MassiveParticle> planet_ptr[9];
     CLI11_PARSE(app, argc, argv);
+
     std::clock_t c_start = std::clock();
     auto t_start = std::chrono::high_resolution_clock::now();
+    omp_set_num_threads(16);
+
+    #pragma omp parallel for
     for (int i=0; i<9; i++) {
 		planet_name[i]=nbsim::solarSystemData[i].name;
 		init_position=nbsim::solarSystemData[i].position;
@@ -30,6 +35,7 @@ int main(int argc, char** argv){
         std::shared_ptr<nbsim::MassiveParticle> ptr_particle_i(new nbsim::MassiveParticle(init_position, init_velocity, mu/6.67408e-11));
 		planet_ptr[i]=ptr_particle_i;
 	}
+    
     for (int i=0; i<9; i++){
 		for (int j=0; j<9; j++){
 			planet_ptr[i]->addAttractor(planet_ptr[j]);
@@ -37,22 +43,29 @@ int main(int argc, char** argv){
                 planet_ptr[i]->removeAttractor(planet_ptr[j]);
             }
 		}
-	}
+	}  
+    #pragma omp parallel
     for (double test_time=0; test_time<total_time; test_time+=step_size){
+        
+        #pragma omp for 
 		for (int i=0;i<9;i++){
 			planet_ptr[i]->calculateAcceleration();
 		}
+        #pragma omp for nowait
 		for (int i=0;i<9;i++){
 			planet_ptr[i]->integrateTimestep(step_size);
 		}	
 	}
+    #pragma omp parallel for
     for (int i=0;i<9;i++){
         r_com+=nbsim::solarSystemData[i].mu*(planet_ptr[i]->getPosition());
         p_total+=nbsim::solarSystemData[i].mu*(planet_ptr[i]->getVelocity());
     }
-    r_com=r_com/mu_total;
     std::clock_t c_end = std::clock();
     auto t_end = std::chrono::high_resolution_clock::now();
+    
+    r_com=r_com/mu_total;
+    
     for (int i=0;i<9;i++){
 		std::cout<<planet_name[i]<<"\n original position:"<<nbsim::solarSystemData[i].position<<"\n current position:"<<planet_ptr[i]->getPosition()<<std::endl;
         
